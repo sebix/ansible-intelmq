@@ -6,6 +6,13 @@ An Ansible Role to install and configure [IntelMQ](https://github.com/certtools/
 - the [IntelMQ Manager](https://github.com/certtools/intelmq-manager) (graphical user interface),
 - the [IntelMQ API](https://github.com/certtools/intelmq-api) (required for the Manager).
 
+Galaxy Website: https://galaxy.ansible.com/sebix/intelmq
+
+Install this role with:
+```bash
+ansible-galaxy install sebix.intelmq
+```
+
 Requirements
 ------------
 
