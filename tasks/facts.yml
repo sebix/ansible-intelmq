@@ -1,0 +1,7 @@
+---
+- name: Set webserver service name
+  set_fact:
+    webserver: apache2
+- name: Set redis service name
+  set_fact:
+    redis: redis-server

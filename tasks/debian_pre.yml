@@ -1,0 +1,19 @@
+---
+- name: Set user for IntelMQ API
+  debconf:
+    name: intelmq-api
+    question: intelmq-api/user
+    value: "{{intelmq_api_username}}"
+    vtype: string
+- name: Set password for IntelMQ API
+  debconf:
+    name: intelmq-api
+    question: intelmq-api/password
+    value: "{{intelmq_api_password}}"
+    vtype: password
+- name: Set password-repeat for IntelMQ API
+  debconf:
+    name: intelmq-api
+    question: intelmq-api/password-repeat
+    value: "{{intelmq_api_password}}"
+    vtype: password

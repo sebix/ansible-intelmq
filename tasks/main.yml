@@ -1,2 +1,9 @@
 ---
-# tasks file for .
+- import_tasks: facts.yml
+  tags:
+  - packages
+  - intelmq
+- import_tasks: package.yml
+  tags:
+  - packages
+  - intelmq
