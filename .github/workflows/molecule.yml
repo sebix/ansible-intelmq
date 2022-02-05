@@ -1,0 +1,52 @@
+---
+name: Run molecule
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          path: "${{ github.repository }}"
+      - name: molecule
+        uses: robertdebock/molecule-action@4.0.6
+        with:
+          command: lint
+  molecule:
+    needs:
+      - lint
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distribution:
+#          - image: "enterpriselinux"
+#            tag: "latest"
+          - image: "debian"
+            tag: "bullseye"
+#          - image: "debian"
+#            tag: "bookworm"
+#          - image: "fedora"
+#            tag: "34"
+#          - image: "fedora"
+#            tag: "latest"
+#          - image: "opensuse"
+#            tag: "latest"
+          - image: "ubuntu"
+            tag: "latest"
+    steps:
+      - name: checkout the repository
+        uses: actions/checkout@v2
+        with:
+          path: "${{ github.repository }}"
+
+      - name: molecule
+        uses: robertdebock/molecule-action@4.0.6
+        with:
+          image: ${{ matrix.distribution.image }}
+          tag: ${{ matrix.distribution.tag }}
+        env:
+          options: parallel
