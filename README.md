@@ -29,6 +29,8 @@ redirect_mail:
     default: root. Set to `no` to disable
 intelmq_runtime:
     the new configuration
+intelmq_runtime_clean:
+    if the previous configuration should be removed
 ```
 
 Dependencies
