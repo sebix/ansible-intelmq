@@ -5,3 +5,6 @@
 - name: Set redis service name
   set_fact:
     redis: redis-server
+- name: Get package facts
+  package_facts:
+    manager: "auto"
