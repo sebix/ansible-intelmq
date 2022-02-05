@@ -1,0 +1,18 @@
+# uses https://github.com/ansible/ansible-lint-action
+name: Ansible Lint
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Lint Ansible Playbook
+      # replace "master" with any valid ref
+      uses: ansible/ansible-lint-action@master
+      with:
+        targets: ""
