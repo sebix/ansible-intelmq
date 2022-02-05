@@ -49,5 +49,5 @@ Author Information
 ------------------
 
 - Sebastian Wagner
-- [mailto:sebix@sebix.at](sebix@sebix.at)
+- [sebix@sebix.at](mailto:sebix@sebix.at)
 - [GitHub: @sebix](https://github.com/sebix)
