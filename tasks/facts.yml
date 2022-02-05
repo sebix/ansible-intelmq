@@ -9,8 +9,3 @@
 - name: Get package facts
   package_facts:
     manager: "auto"
-
-- name: check if /etc/aliases exists
-  stat:
-    path: /etc/aliases
-  register: etc_aliases

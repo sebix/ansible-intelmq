@@ -3,11 +3,9 @@
   slurp:
     path: /etc/intelmq/runtime.yaml
   register: intelmq_runtime_raw
-  when: not intelmq_runtime_clean
 - name: parse runtime.yaml
   set_fact:
     original_intelmq_runtime: "{{ intelmq_runtime_raw['content'] | b64decode | from_yaml }}"
-  when: not intelmq_runtime_clean
 
 - name: merge runtime
   set_fact:
@@ -24,6 +22,7 @@
     dest: /etc/intelmq/runtime.yaml.bak
     remote_src: yes
     mode: '0640'
+  when: "original_intelmq_runtime != new_intelmq_runtime"
 
 - name: Write runtime.yaml
   copy:

@@ -1,4 +1,9 @@
 ---
+- name: check if /etc/aliases exists
+  stat:
+    path: /etc/aliases
+  register: etc_aliases
+
 - name: Redirect IntelMQ system mails
   lineinfile:
     path: /etc/aliases
