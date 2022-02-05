@@ -1,14 +1,19 @@
 ---
 - import_tasks: debian_pre.yml
-  when: ansible_distribution == 'Debian' and 'intelmq-api' not in ansible_facts.packages
+  when: ansible_facts['os_family'] == 'Debian' and 'intelmq-api' not in ansible_facts.packages
 
+- name: Update certs on Ubuntu 20.04
+  package:
+    name: ca-certificates
+    state: latest
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '20.04'
 - name: APT key
   apt_key:
-    url: "https://download.opensuse.org/repositories/home:sebix:intelmq/{{ ansible_distribution }}_{{ ansible_distribution_major_version }}/Release.key"
+    url: "https://download.opensuse.org/repositories/home:sebix:intelmq/{{ _distribution_to_repository_name[ansible_distribution] }}_{{ ansible_distribution_version }}/Release.key"
     state: present
 - name: IntelMQ stable repository
   apt_repository:
-    repo: "deb http://download.opensuse.org/repositories/home:/sebix:/intelmq/{{ ansible_distribution }}_{{ ansible_distribution_major_version }}/ /"
+    repo: "deb http://download.opensuse.org/repositories/home:/sebix:/intelmq/{{ _distribution_to_repository_name[ansible_distribution] }}_{{ ansible_distribution_version }}/ /"
     state: present
 - name: Install IntelMQ packages
   package:

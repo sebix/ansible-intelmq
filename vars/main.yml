@@ -1,2 +1,4 @@
 ---
-# vars file for .
+_distribution_to_repository_name:
+  Debian: Debian
+  Ubuntu: xUbuntu
