@@ -4,11 +4,11 @@
 
 - name: Add apt key
   apt_key:
-    url: "https://download.opensuse.org/repositories/home:sebix:intelmq/{{ansible_distribution}}_{{ansible_distribution_major_version}}/Release.key"
+    url: "https://download.opensuse.org/repositories/home:sebix:intelmq/{{ ansible_distribution }}_{{ ansible_distribution_major_version }}/Release.key"
     state: present
 - name: Setup IntelMQ stable repository
   apt_repository:
-    repo: "deb http://download.opensuse.org/repositories/home:/sebix:/intelmq/{{ansible_distribution}}_{{ansible_distribution_major_version}}/ /"
+    repo: "deb http://download.opensuse.org/repositories/home:/sebix:/intelmq/{{ ansible_distribution }}_{{ ansible_distribution_major_version }}/ /"
     state: present
 - name: Install IntelMQ packages
   package:
@@ -23,9 +23,9 @@
   service:
     state: started
     enabled: yes
-    name: "{{redis}}"
+    name: "{{ redis }}"
 - name: Make sure webserver is running
   service:
     state: started
     enabled: yes
-    name: "{{webserver}}"
+    name: "{{ webserver }}"
