@@ -24,6 +24,8 @@ Role Variables
 ```
 intelmq_api_username
 intelmq_api_password
+redirect_mail:
+default: root. Set to `no` to disable
 ```
 
 Dependencies

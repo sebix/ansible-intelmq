@@ -7,3 +7,8 @@
   tags:
   - packages
   - intelmq
+- import_tasks: mail.yml
+  tags:
+  - intelmq
+  - mail
+  when: redirect_mail|length

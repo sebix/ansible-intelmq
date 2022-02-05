@@ -1,0 +1,7 @@
+---
+- name: Redirect IntelMQ system mails
+  lineinfile:
+    path: /etc/aliases
+    regexp: "^intelmq:"
+    line: "intelmq: {{ redirect_mail }}"
+  notify: newaliases
