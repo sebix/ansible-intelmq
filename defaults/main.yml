@@ -2,3 +2,5 @@
 redirect_mail: root
 intelmq_runtime: {}
 intelmq_runtime_clean: no
+skip_intelmqctl_check: no
+skip_intelmqctl_upgrade_config: no

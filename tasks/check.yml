@@ -1,0 +1,24 @@
+---
+- name: Run intelmqctl check
+  command:
+    argv:
+    - intelmqctl
+    - check
+  become_user: intelmq
+  become: yes
+  vars:
+    ansible_ssh_pipelining: yes
+  when: not skip_intelmqctl_check
+  changed_when: False
+- name: Run intelmqctl upgrade-config
+  command:
+    argv:
+    - intelmqctl
+    - upgrade-config
+  become_user: intelmq
+  vars:
+    ansible_ssh_pipelining: yes
+  when: not skip_intelmqctl_upgrade_config
+  register: intelmqctl_upgrade_config
+  # FIXME
+  changed_when: False

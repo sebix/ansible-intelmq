@@ -31,6 +31,10 @@ intelmq_runtime:
     the new configuration
 intelmq_runtime_clean:
     if the previous configuration should be removed
+skip_intelmqctl_check:
+    If `intelmqctl check` should be skipped at the end, default: no
+skip_intelmqctl_upgrade_config:
+    If `intelmqctl upgrade-config` should be skipped at the end, default: no
 ```
 
 Dependencies

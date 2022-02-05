@@ -18,3 +18,7 @@
   tags:
   - intelmq
   - configuration
+
+- import_tasks: check.yml
+  tags:
+  - intelmq
