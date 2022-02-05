@@ -1,0 +1,26 @@
+---
+- name: Read runtime.yml
+  slurp:
+    path: /etc/intelmq/runtime.yml
+  register: intelmq_runtime_raw
+
+- name: parse runtime.yml
+  set_fact:
+    original_intelmq_runtime: "{{ r_myfile['content'] | b64decode | from_yaml }}"
+
+- name: merge runtime
+  set_fact:
+    new_intelmq_runtime: "{{ original_intelmq_runtime | combine(intelmq_runtime, recursive=True) }}"
+
+- name: Make runtime.yml backup
+  copy:
+    src: /etc/intelmq/runtime.yml
+    dest: /etc/intelmq/runtime.yml.bak
+    remote_src: yes
+    mode: '0640'
+
+- name: Write runtime.yml
+  copy:
+    content: "{{ new_intelmq_runtime | to_nice_yaml }}"
+    dest: /etc/intelmq/runtime.yml
+    mode: '0640'

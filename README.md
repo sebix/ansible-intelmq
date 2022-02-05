@@ -27,6 +27,8 @@ intelmq_api_password
     On Debian: Only used if package is to be installed
 redirect_mail:
     default: root. Set to `no` to disable
+intelmq_runtime:
+    the new configuration
 ```
 
 Dependencies

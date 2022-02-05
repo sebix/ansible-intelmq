@@ -12,3 +12,8 @@
   - intelmq
   - mail
   when: redirect_mail|length
+
+- import_tasks: runtime.yml
+  tags:
+  - intelmq
+  - configuration
