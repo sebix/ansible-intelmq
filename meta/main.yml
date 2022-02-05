@@ -2,7 +2,7 @@ galaxy_info:
   role_name: intelmq
   namespace: sebix
   author: Sebastian Wagner
-  description: IntelMQ Maintainer and Developer
+  description: Role to install and setup IntelMQ, API and Manager on various distributions
   issue_tracker_url: https://github.com/sebix/ansible-intelmq/issues
   license: CC-BY-NC-SA-4.0
 
