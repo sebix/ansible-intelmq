@@ -24,8 +24,9 @@ Role Variables
 ```
 intelmq_api_username
 intelmq_api_password
+    On Debian: Only used if package is to be installed
 redirect_mail:
-default: root. Set to `no` to disable
+    default: root. Set to `no` to disable
 ```
 
 Dependencies

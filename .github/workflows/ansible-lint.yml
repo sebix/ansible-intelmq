@@ -1,10 +1,11 @@
 # uses https://github.com/ansible/ansible-lint-action
+---
 name: Ansible Lint
 
 on: [push, pull_request]
 
 jobs:
-  build:
+  lint:
 
     runs-on: ubuntu-latest
 

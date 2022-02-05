@@ -19,18 +19,18 @@ galaxy_info:
     - buster
     - bullseye
   # CentOS is called EL at ansible galaxy?
-  - name: EL
-    versions:
-    - 7
-    - 8
-  - name: Fedora
-    versions:
-    - 33
-    - 34
-  - name: openSUSE
-    versions:
-    - 15.2
-    - 15.3
+#  - name: EL
+#    versions:
+#    - 7
+#    - 8
+#  - name: Fedora
+#    versions:
+#    - 33
+#    - 34
+#  - name: openSUSE
+#    versions:
+#    - 15.2
+#    - 15.3
   - name: Ubuntu
     versions:
     - bionic
