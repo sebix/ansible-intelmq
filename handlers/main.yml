@@ -4,5 +4,5 @@
 - name: intelmqctl reload
   command:
     argv:
-    - intelmqctl
-    - reload
+      - intelmqctl
+      - reload

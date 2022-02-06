@@ -10,13 +10,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Lint Ansible Playbook
-      # replace "master" with any valid ref
-      uses: ansible/ansible-lint-action@master
-      with:
-        targets: ""
-# https://github.com/ansible/ansible-lint-action/issues/59
-        override-deps: |
-           rich>=9.5.1,<11.0.0
+      - uses: actions/checkout@v2
+      - name: Lint Ansible Playbook
+        # replace "master" with any valid ref
+        uses: ansible/ansible-lint-action@master
+        with:
+          targets: ""
+  # https://github.com/ansible/ansible-lint-action/issues/59
+          override-deps: |
+             rich>=9.5.1,<11.0.0

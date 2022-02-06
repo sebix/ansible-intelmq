@@ -1,3 +1,4 @@
+---
 galaxy_info:
   role_name: intelmq
   namespace: sebix
@@ -14,10 +15,10 @@ galaxy_info:
   # To view available platforms and versions (or releases), visit:
   # https://galaxy.ansible.com/api/v1/platforms/
   platforms:
-  - name: Debian
-    versions:
-    - buster
-    - bullseye
+    - name: Debian
+      versions:
+        - buster
+        - bullseye
   # CentOS is called EL at ansible galaxy?
 #  - name: EL
 #    versions:
@@ -31,18 +32,18 @@ galaxy_info:
 #    versions:
 #    - 15.2
 #    - 15.3
-  - name: Ubuntu
-    versions:
-    - bionic
-    - focal
+    - name: Ubuntu
+      versions:
+        - bionic
+        - focal
 
   galaxy_tags:
-  - automation
-  - csirt
-  - incidenthandling
-  - intelmq
-  - networksecurity
-  - osint
-  - securitymanagement
+    - automation
+    - csirt
+    - incidenthandling
+    - intelmq
+    - networksecurity
+    - osint
+    - securitymanagement
 
 dependencies: []

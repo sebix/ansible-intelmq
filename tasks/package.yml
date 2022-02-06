@@ -19,9 +19,9 @@
   package:
     name: "{{ item }}"
   loop:
-  - intelmq-manager
-  - intelmq-api
-  - intelmq
+    - intelmq-manager
+    - intelmq-api
+    - intelmq
 
 # services configuration
 - name: Make sure redis is running

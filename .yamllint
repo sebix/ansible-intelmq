@@ -1,0 +1,9 @@
+---
+# https://yamllint.readthedocs.io/en/stable/configuration.html#extending-the-default-configuration
+extends: default
+
+rules:
+  comments-indentation: disable
+  line-length: disable
+# yes/no are very common in ansible. Also triggers a false-positive for github workflows ("on")
+  truthy: disable
