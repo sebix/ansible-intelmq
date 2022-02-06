@@ -8,3 +8,4 @@
       vars:
         intelmq_api_username: intelmqadmin
         intelmq_api_password: intelmqadmin
+        intelmq_runtime_clean: yes
