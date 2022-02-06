@@ -29,3 +29,4 @@
     content: "{{ new_intelmq_runtime | to_nice_yaml(indent=2) }}"
     dest: /etc/intelmq/runtime.yaml
     mode: '0640'
+  notify: intelmqctl reload
