@@ -1,11 +1,11 @@
 ---
 - name: Set webserver service name
-  set_fact:
+  ansible.builtin.set_fact:
     webserver: apache2
 - name: Set redis service name
-  set_fact:
+  ansible.builtin.set_fact:
     redis: redis-server
 
 - name: Get package facts
-  package_facts:
+  ansible.builtin.package_facts:
     manager: "auto"

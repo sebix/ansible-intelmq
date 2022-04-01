@@ -1,6 +1,6 @@
 ---
 - name: Run intelmqctl check
-  command:
+  ansible.builtin.command:
     argv:
       - intelmqctl
       - check
@@ -11,7 +11,7 @@
   when: not skip_intelmqctl_check
   changed_when: false
 - name: Run intelmqctl upgrade-config
-  command:
+  ansible.builtin.command:
     argv:
       - intelmqctl
       - upgrade-config

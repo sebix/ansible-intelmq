@@ -1,8 +1,8 @@
 ---
 - name: newaliases
-  command: newaliases
+  ansible.builtin.command: newaliases
 - name: intelmqctl reload
-  command:
+  ansible.builtin.command:
     argv:
       - intelmqctl
       - reload
