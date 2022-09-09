@@ -5,3 +5,4 @@ intelmq_runtime:
 intelmq_runtime_clean: no
 skip_intelmqctl_check: no
 skip_intelmqctl_upgrade_config: no
+intelmq_unstable_repository: false

@@ -7,7 +7,6 @@
   tags:
   - packages
   - intelmq
-  when: "'intelmq-manager' not in ansible_facts.packages"
 - import_tasks: mail.yml
   tags:
   - intelmq

@@ -35,6 +35,8 @@ skip_intelmqctl_check:
     If `intelmqctl check` should be skipped at the end, default: no
 skip_intelmqctl_upgrade_config:
     If `intelmqctl upgrade-config` should be skipped at the end, default: no
+intelmq_unstable_repository:
+    default: false. Set to `true` to use the "unstable" repository
 ```
 
 Dependencies
