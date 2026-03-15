@@ -8,12 +8,13 @@ driver:
   name: docker
 platforms:
   - name: "ansible-intelmq-${image:-fedora}-${tag:-latest}${TOX_ENVNAME}"
-    image: "${namespace:-sebix}/${image:-fedora}:${tag:-latest}"
+    image: fedora:latest
     command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: yes
-    pre_build_image: yes
 provisioner:
   log: true
   name: ansible

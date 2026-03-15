@@ -4,25 +4,12 @@ name: Run molecule
 on: [push, pull_request]
 
 jobs:
-  lint:
-    runs-on: ubuntu-20.04
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-        with:
-          path: "${{ github.repository }}"
-      - name: molecule
-        uses: robertdebock/molecule-action@4.0.6
-        with:
-          command: lint
   molecule:
-    needs:
-      - lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
-        distribution:
+        image:
 #          - image: "enterpriselinux"
 #            tag: "latest"
           - image: "debian"
@@ -44,9 +31,8 @@ jobs:
           path: "${{ github.repository }}"
 
       - name: molecule
-        uses: robertdebock/molecule-action@4.0.6
+        uses: robertdebock/molecule-action@4.0.7
         with:
           image: ${{ matrix.distribution.image }}
           tag: ${{ matrix.distribution.tag }}
-        env:
           options: parallel
