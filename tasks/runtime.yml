@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Institute for Common Good Technology
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 ---
 - name: Read runtime.yaml
   ansible.builtin.slurp:
@@ -29,4 +33,5 @@
     content: "{{ new_intelmq_runtime | to_nice_yaml(indent=2) }}"
     dest: /etc/intelmq/runtime.yaml
     mode: '0640'
-  notify: intelmqctl reload
+  # raises an error when bots are not running
+  # notify: intelmqctl reload

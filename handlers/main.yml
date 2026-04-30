@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Institute for Common Good Technology
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 ---
 - name: newaliases
   ansible.builtin.command: newaliases
@@ -6,3 +10,14 @@
     argv:
       - intelmqctl
       - reload
+- name: Restart webserver
+  ansible.builtin.service:
+    name: "apache2"
+    state: restarted
+- name: Restart postgresql
+  ansible.builtin.service:
+    name: postgresql
+    state: restarted
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true

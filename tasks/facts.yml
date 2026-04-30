@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Institute for Common Good Technology
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 ---
 - name: Set webserver service name
   ansible.builtin.set_fact:
@@ -9,3 +13,4 @@
 - name: Get package facts
   ansible.builtin.package_facts:
     manager: "auto"
+  # when: not ansible_check_mode

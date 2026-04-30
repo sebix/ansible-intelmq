@@ -1,0 +1,347 @@
+# SPDX-FileCopyrightText: 2026 Institute for Common Good Technology
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+---
+- name: Set up PostgreSQL database server
+  tags:
+    - database
+
+  block:
+    - name: Install PostgreSQL
+      ansible.builtin.package:
+        name: postgresql
+        state: present
+
+    - name: Configure listen_address
+      ansible.builtin.lineinfile:
+        path: /etc/postgresql/16/main/postgresql.conf
+        regexp: '^#?listen_addresses\s*='
+        line: "listen_addresses = '{{ db_server_listen_address }}'"
+      when: db_server_listen_address != 'localhost'
+      notify: Restart postgresql
+
+    - name: Configure pg_hba.conf for IntelMQ server access
+      community.postgresql.postgresql_pg_hba:
+        dest: /etc/postgresql/16/main/pg_hba.conf
+        contype: host
+        databases: "{{ item.db }}"
+        users: "{{ item.user }}"
+        address: "{{ intelmq_server_ip }}/32"
+        method: scram-sha-256
+      loop:
+        - {db: intelmq-events, user: intelmq}
+        - {db: intelmq-events, user: mailgen}
+        - {db: contactdb,      user: intelmq}
+        - {db: contactdb,      user: fody}
+      when: intelmq_server_ip is defined and intelmq_server_ip | length > 0
+      notify: Restart postgresql
+
+- name: Create PostgreSQL roles and databases
+  become: true
+  become_user: postgres
+  tags:
+    - database
+
+  block:
+    - name: Create intelmq role
+      community.postgresql.postgresql_user:
+        name: intelmq
+        password: "{{ db_password_intelmq }}"
+        role_attr_flags: NOSUPERUSER,NOCREATEROLE,NOCREATEDB
+
+    - name: Create fody role
+      community.postgresql.postgresql_user:
+        name: fody
+        password: "{{ db_password_fody }}"
+        role_attr_flags: NOSUPERUSER,NOCREATEROLE,NOCREATEDB
+
+    - name: Create mailgen role
+      community.postgresql.postgresql_user:
+        name: mailgen
+        password: "{{ db_password_mailgen }}"
+        role_attr_flags: NOSUPERUSER,NOCREATEROLE,NOCREATEDB
+
+    - name: Create contactdb_owner role
+      community.postgresql.postgresql_user:
+        name: contactdb_owner
+        role_attr_flags: NOSUPERUSER,NOCREATEROLE,NOCREATEDB
+
+    - name: Create intelmq-events database
+      community.postgresql.postgresql_db:
+        name: intelmq-events
+        owner: intelmq
+        encoding: UTF8
+        template: template0
+
+    - name: Create contactdb database
+      community.postgresql.postgresql_db:
+        name: contactdb
+        owner: contactdb_owner
+        encoding: UTF8
+        template: template0
+
+- name: Initialize intelmq-events schema
+  become: true
+  tags:
+    - database
+    - schema
+
+  block:
+    # TODO: support running separate IntelMQ and PostgreSQL server
+    # - name: Fetch intelmq-events initdb.sql from GitHub
+    #   ansible.builtin.get_url:
+    #     url: https://raw.githubusercontent.com/certtools/intelmq/refs/heads/3.3.1/intelmq/tests/bin/initdb.sql
+    #     dest: "{{ _initdb_events_sql.path }}"
+    #     mode: "0644"
+
+    - name: Create temporary file for initdb.sql
+      ansible.builtin.tempfile:
+        suffix: _initdb_events.sql
+      register: _initdb_events_sql
+      changed_when: false
+
+    - name: Make temporary file readable by postgres
+      ansible.builtin.file:
+        path: "{{ _initdb_events_sql.path }}"
+        mode: "0644"
+      changed_when: false
+
+    - name: Generate initdb.sql on IntelMQ host
+      ansible.builtin.command:
+        cmd: intelmq_psql_initdb --skip-or-replace -o {{ _initdb_events_sql.path }}
+      changed_when: true
+      # delegate_to: "{{ intelmq_server_host }}"
+
+    # - name: Fetch generated initdb.sql from IntelMQ server
+    #   ansible.builtin.fetch:
+    #     src: "{{ _initdb_events_sql.path }}"
+    #     dest: "{{ _initdb_events_sql.path }}"
+    #     flat: true
+    #   delegate_to: "{{ intelmq_server_host }}"
+
+    # - name: Upload intelmq-events initdb.sql to database server
+    #   ansible.builtin.copy:
+    #     src: "{{ _initdb_events_sql.path }}"
+    #     dest: "{{ _initdb_events_sql.path }}"
+    #     mode: "0644"
+
+    - name: Create events table and clean up
+      block:
+        - name: Create events table
+          become_user: postgres
+          community.postgresql.postgresql_script:
+            db: intelmq-events
+            path: "{{ _initdb_events_sql.path }}"
+      always:
+        - name: Remove intelmq-events initdb.sql
+          ansible.builtin.file:
+            path: "{{ _initdb_events_sql.path }}"
+            state: absent
+
+- name: Initialize contactdb schema
+  become: true
+  tags:
+    - database
+    - schema
+    - fody
+
+  block:
+    - name: Fetch contactdb initdb.sql from GitHub
+      ansible.builtin.get_url:
+        # fetch a custom script that allows re-execution until upstream and the packages are fixed
+        # url: https://raw.githubusercontent.com/Intevation/intelmq-certbund-contact/refs/tags/1.1.0/sql/initdb.sql
+        url: https://github.com/sebix/intelmq-certbund-contact/raw/refs/heads/fix/sqlupdate/sql/initdb.sql
+        dest: /tmp/initdb-contactdb.sql
+        mode: "0644"
+
+    # - name: Copy contactdb initdb.sql from IntelMQ server
+    #   ansible.builtin.fetch:
+    #     src: /usr/share/intelmq-certbund-contact/sql/initdb.sql
+    #     dest: /tmp/initdb-contactdb.sql
+    #     flat: true
+    #   delegate_to: "{{ intelmq_server_host }}"
+
+    # - name: Upload contactdb initdb.sql to database server
+    #   ansible.builtin.copy:
+    #     src: /tmp/initdb-contactdb.sql
+    #     dest: /tmp/initdb-contactdb.sql
+    #     mode: "0644"
+
+    - name: Create contactdb tables
+      become_user: postgres
+      community.postgresql.postgresql_script:
+        db: contactdb
+        # path: /usr/share/intelmq-certbund-contact/sql/initdb.sql
+        path: /tmp/initdb-contactdb.sql
+
+    # - name: Remove contactdb initdb.sql
+    #   ansible.builtin.file:
+    #     path: /tmp/initdb-contactdb.sql
+    #     state: absent
+
+    - name: Create contactdb group roles
+      become_user: postgres
+      community.postgresql.postgresql_user:
+        name: "{{ item }}"
+        role_attr_flags: NOLOGIN,NOSUPERUSER,NOINHERIT,NOCREATEDB,CREATEROLE
+      loop:
+        - contactdb_ro
+        - contactdb_rw
+
+    - name: Grant table privileges to contactdb_rw
+      become_user: postgres
+      community.postgresql.postgresql_privs:
+        database: contactdb
+        role: contactdb_rw
+        objs: ALL_IN_SCHEMA
+        privs: SELECT,INSERT,UPDATE,DELETE
+
+    - name: Grant sequence privileges to contactdb_rw
+      become_user: postgres
+      community.postgresql.postgresql_privs:
+        database: contactdb
+        role: contactdb_rw
+        type: sequence
+        objs: ALL_IN_SCHEMA
+        privs: USAGE
+
+    - name: Grant table privileges to contactdb_ro
+      become_user: postgres
+      community.postgresql.postgresql_privs:
+        database: contactdb
+        role: contactdb_ro
+        objs: ALL_IN_SCHEMA
+        privs: SELECT
+
+    - name: Grant contactdb_ro to intelmq
+      become_user: postgres
+      community.postgresql.postgresql_membership:
+        group: contactdb_ro
+        target_roles: intelmq
+
+    - name: Grant contactdb_rw to fody
+      become_user: postgres
+      community.postgresql.postgresql_membership:
+        group: contactdb_rw
+        target_roles: fody
+
+- name: Initialize notifications schema
+  become: true
+  tags:
+    - database
+    - schema
+    - mailgen
+
+  block:
+    # - name: Fetch notifications.sql from GitHub
+    #   ansible.builtin.get_url:
+    #     url: https://raw.githubusercontent.com/Intevation/intelmq-mailgen/refs/tags/1.3.7/sql/notifications.sql
+    #     dest: /tmp/notifications.sql
+    #     mode: "0644"
+
+    - name: Create temporary copy of notifications.sql
+      ansible.builtin.tempfile:
+        suffix: _notifications.sql
+      register: _notifications_sql
+      changed_when: false
+
+    - name: Make temporary file readable by postgres
+      ansible.builtin.file:
+        path: "{{ _notifications_sql.path }}"
+        mode: "0644"
+      changed_when: false
+
+    - name: Copy notifications.sql to temp file
+      ansible.builtin.copy:
+        src: /usr/share/intelmq-mailgen/sql/notifications.sql
+        dest: "{{ _notifications_sql.path }}"
+        remote_src: true
+        mode: "0644"
+      changed_when: false
+
+    - name: Replace DBNAME placeholder in notifications.sql
+      ansible.builtin.replace:
+        path: "{{ _notifications_sql.path }}"
+        regexp: ':"DBNAME"'
+        replace: '"intelmq-events"'
+      changed_when: false
+
+    - name: Create notifications tables and clean up
+      block:
+        - name: Create notifications tables
+          become_user: postgres
+          community.postgresql.postgresql_script:
+            db: intelmq-events
+            path: "{{ _notifications_sql.path }}"
+      always:
+        - name: Remove notifications.sql copy
+          ansible.builtin.file:
+            path: "{{ _notifications_sql.path }}"
+            state: absent
+
+    - name: Grant eventdb_insert to intelmq
+      become_user: postgres
+      community.postgresql.postgresql_membership:
+        group: eventdb_insert
+        target_roles: intelmq
+
+    - name: Grant eventdb_send_notifications to mailgen
+      become_user: postgres
+      community.postgresql.postgresql_membership:
+        group: eventdb_send_notifications
+        target_roles: mailgen
+
+# FIXME: Tags https://github.com/Intevation/intelmq-certbund-contact/?tab=readme-ov-file#adding-default-email-tags
+
+- name: Import RIPE data into contactdb
+  become: true
+  tags:
+    - database
+    - ripe
+  when: ripe_import_countries is defined and ripe_import_countries | length > 0
+
+  block:
+    - name: Gather date facts
+      ansible.builtin.setup:
+        filter: ansible_date_time
+      changed_when: false
+
+    - name: Create contactdb-import.conf
+      ansible.builtin.copy:
+        content: "{{ {'restrict_to_country': ripe_import_countries.split()} | to_nice_json }}\n"
+        dest: /etc/intelmq/contactdb-import.conf
+        owner: root
+        group: intelmq
+        mode: "0640"
+
+    - name: Check if RIPE data already downloaded
+      ansible.builtin.stat:
+        path: "{{ ansible_facts['date_time'].date }}/ripe.db.organisation.gz"
+      register: _ripe_org_file
+      changed_when: false
+
+    - name: Check if contact_automatic table is empty
+      become_user: postgres
+      community.postgresql.postgresql_query:
+        db: contactdb
+        query: "SELECT COUNT(*) FROM contact_automatic"
+      register: _contact_automatic_count
+      changed_when: false
+
+    - name: Download and import RIPE data
+      when:
+        - not _ripe_org_file.stat.exists
+        - _contact_automatic_count.query_result[0].count | int == 0
+      block:
+        - name: Run ripe_download
+          ansible.builtin.command:
+            cmd: ripe_download
+          register: _ripe_download
+          changed_when: true
+
+        - name: Run ripe_import
+          ansible.builtin.command:
+            cmd: ripe_import
+            chdir: "{{ ansible_facts['date_time'].date }}"
+          changed_when: true

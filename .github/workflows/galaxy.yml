@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 Institute for Common Good Technology
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 ---
 name: Push to Ansible Galaxy
 

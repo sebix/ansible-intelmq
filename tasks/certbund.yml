@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Institute for Common Good Technology
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+---
+- name: Create notification_rules directory
+  ansible.builtin.file:
+    path: /var/lib/intelmq/bots/notification_rules
+    state: directory
+    owner: intelmq
+    group: intelmq
+    mode: "0755"
+
+- name: Sync notification rules
+  become: true
+  ansible.posix.synchronize:
+    src: "{{ certbund_notification_rules_dir }}/"
+    dest: /var/lib/intelmq/bots/notification_rules/
+    delete: true
+    recursive: true
+  when: certbund_notification_rules_dir is defined and certbund_notification_rules_dir | length > 0

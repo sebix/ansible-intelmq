@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Institute for Common Good Technology
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+---
+- name: Create IntelMQ Mailgen configuration file
+  become: true
+  ansible.builtin.template:
+    src: intelmq-mailgen.conf.j2
+    dest: /etc/intelmq/intelmq-mailgen.conf
+    owner: root
+    group: intelmq
+    mode: "0640"
+
+- name: Create mailgen templates directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/intelmq/mailgen/templates
+    state: directory
+    owner: root
+    group: intelmq
+    mode: "0750"
+
+- name: Sync mailgen formats
+  become: true
+  ansible.posix.synchronize:
+    src: "{{ mailgen_formats_dir }}/"
+    dest: /etc/intelmq/mailgen/formats/
+    delete: true
+    recursive: true
+  when: mailgen_formats_dir is defined and mailgen_formats_dir | length > 0
+
+- name: Sync mailgen templates
+  become: true
+  ansible.posix.synchronize:
+    src: "{{ mailgen_templates_dir }}/"
+    dest: /etc/intelmq/mailgen/templates/
+    delete: true
+    recursive: true
+  when: mailgen_templates_dir is defined and mailgen_templates_dir | length > 0

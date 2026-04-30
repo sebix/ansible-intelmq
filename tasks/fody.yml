@@ -1,0 +1,107 @@
+# SPDX-FileCopyrightText: 2026 Institute for Common Good Technology
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+---
+- name: Sync Fody session store with IntelMQ API
+  when: fody_shared_session_store
+  block:
+    - name: Read session_store from api-config.json
+      ansible.builtin.command:
+        cmd: jq -r .session_store /etc/intelmq/api-config.json
+      register: _api_session_store
+      changed_when: false
+      # this task will never change something, always run it in check mode too
+      check_mode: false
+
+    - name: Assert session_store is not empty
+      ansible.builtin.assert:
+        that:
+          - _api_session_store.stdout | length > 0
+          - _api_session_store.stdout != "null"
+        fail_msg: "session_store in /etc/intelmq/api-config.json is empty or null"
+
+    - name: Set session_store in fody-session.conf
+      ansible.builtin.lineinfile:
+        path: /etc/intelmq/fody-session.conf
+        regexp: '^(.*?"session_store": )"[^"]+"(.*)'
+        line: '\1"{{ _api_session_store.stdout }}"\2'
+        backrefs: true
+      notify: Restart webserver
+
+- name: Configure Fody backend
+  become: true
+  block:
+    - name: Set contactdb-serve.conf database connection
+      ansible.builtin.lineinfile:
+        path: /etc/intelmq/contactdb-serve.conf
+        regexp: '^(\s*"libpg conninfo":\s*)"[^"]*"'
+        line: '\1"host={{ db_host }} dbname=contactdb user=fody password={{ db_password_fody }}",'
+        backrefs: true
+      notify: Restart webserver
+
+    - name: Set eventdb-serve.conf database connection
+      ansible.builtin.lineinfile:
+        path: /etc/intelmq/eventdb-serve.conf
+        regexp: '^(\s*"libpg conninfo":\s*)"[^"]*"'
+        line: '\1"host={{ db_host }} dbname=intelmq-events user=mailgen password={{ db_password_mailgen }}",'
+        backrefs: true
+      notify: Restart webserver
+
+    - name: Set tickets-serve.conf database connection
+      ansible.builtin.lineinfile:
+        path: /etc/intelmq/tickets-serve.conf
+        regexp: '^(\s*"libpg conninfo":\s*)"[^"]*"'
+        line: '\1"host={{ db_host }} dbname=intelmq-events user=mailgen password={{ db_password_mailgen }}",'
+        backrefs: true
+      notify: Restart webserver
+
+    - name: Set common_tags in contactdb-serve.conf
+      ansible.builtin.lineinfile:
+        path: /etc/intelmq/contactdb-serve.conf
+        regexp: '^(\s*"common_tags":\s*)\[.*\]'
+        line: '\1{{ fody_common_tags | to_json }}'
+        backrefs: true
+      when: fody_common_tags is defined
+      notify: Restart webserver
+
+- name: Test Fody authentication
+  tags:
+    - fody
+    - test
+  block:
+    - name: Flush handlers before testing
+      ansible.builtin.meta: flush_handlers
+
+    - name: Log in and get token
+      ansible.builtin.uri:
+        url: http://localhost:8000/api/login/
+        method: POST
+        body_format: json
+        body:
+          username: "{{ intelmq_api_username }}"
+          password: "{{ intelmq_api_password }}"
+        status_code: 200
+      register: _fody_login
+      check_mode: false
+      # no_log: true
+
+    - name: Query events subqueries
+      ansible.builtin.uri:
+        url: http://localhost:8000/api/events/subqueries
+        headers:
+          Authorization: "{{ _fody_login.json.login_token }}"
+        status_code: 200
+      register: _fody_subqueries
+      # when: not ansible_check_mode
+      check_mode: false
+      # no_log: true
+
+    - name: Assert subqueries response is a non-empty list
+      ansible.builtin.assert:
+        that:
+          - _fody_subqueries.json.subqueries is iterable
+          - _fody_subqueries.json.subqueries | length > 10
+        fail_msg: "Fody /api/events/subqueries did not return a non-empty list"
+      # when: not ansible_check_mode
+      check_mode: false

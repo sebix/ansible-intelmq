@@ -1,8 +1,217 @@
+# SPDX-FileCopyrightText: 2026 Institute for Common Good Technology
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 ---
 redirect_mail: root
+intelmq_runtime_clean: false
+skip_intelmqctl_check: false
+skip_intelmqctl_upgrade_config: false
+intelmq_unstable_repository: false
+checkmk: false
+autostart: true
+catch_emails: true
+intelmq_optional_dependencies: true
+fody_shared_session_store: true
+db_host: localhost
+db_server_listen_address: localhost
+# intelmq_server_ip: ""    # IP of the IntelMQ server; required when DB is on a separate host
+# intelmq_server_host: ""  # Ansible inventory hostname of the IntelMQ server; required when db_fetch_sql_from_github is false
+db_password_intelmq: ""  # best set in secrets
+db_password_fody: ""     # best set in secrets
+db_password_mailgen: ""  # best set in secrets
+ripe_import_countries: AT  # space-separated country codes passed to --restrict-to-country
+# mailgen_formats_dir: ""             # local path to sync to /etc/intelmq/mailgen/formats/
+# mailgen_templates_dir: ""           # local path to sync to /etc/intelmq/mailgen/templates/
+# certbund_notification_rules_dir: "" # local path to sync to /var/lib/intelmq/bots/notification_rules/
+fody_common_tags:        # optional; list of tag strings for contactdb-serve.conf
+  - "Whitelist:Malware"
+  - "Whitelist:DNS-Open-Resolver"
+  - "Whitelist:Shadowserver"
+  - "Whitelist:All"
 intelmq_runtime:
   global: {}
-intelmq_runtime_clean: no
-skip_intelmqctl_check: no
-skip_intelmqctl_upgrade_config: no
-intelmq_unstable_repository: false
+  deduplicator-expert:
+    bot_id: deduplicator-expert
+    description: Deduplicator is the bot responsible for detection and removal of duplicate
+      messages. Messages get cached for <redis_cache_ttl> seconds. If found in the cache,
+      it is assumed to be a duplicate.
+    enabled: true
+    group: Expert
+    groupname: experts
+    module: intelmq.bots.experts.deduplicator.expert
+    name: Deduplicator
+    parameters:
+      destination_queues:
+        _default:
+        - taxonomy-expert-queue
+      filter_keys: raw,time.observation
+      filter_type: blacklist
+      redis_cache_db: 6
+      redis_cache_host: 127.0.0.1
+      redis_cache_port: 6379
+      redis_cache_ttl: 86400
+    run_mode: continuous
+  feodo-tracker-collector:
+    description: Generic URL Fetcher is the bot responsible to get the report from an
+      URL.
+    enabled: true
+    group: Collector
+    module: intelmq.bots.collectors.http.collector_http
+    name: URL Fetcher
+    parameters:
+      destination_queues:
+        _default:
+        - feodo-tracker-parser-queue
+      extract_files: false
+      http_password: null
+      http_url: https://feodotracker.abuse.ch/downloads/ipblocklist.json
+      http_url_formatting: false
+      http_username: null
+      name: Feodo Tracker
+      provider: Abuse.ch
+      rate_limit: 86400
+      ssl_client_certificate: null
+    run_mode: continuous
+  feodo-tracker-parser:
+    description: Parser for Feodo Tracker collector.
+    enabled: true
+    group: Parser
+    module: intelmq.bots.parsers.abusech.parser_feodotracker
+    name: Feodo Tracker Parser
+    parameters:
+      destination_queues:
+        _default:
+        - deduplicator-expert-queue
+    run_mode: continuous
+  file-output:
+    bot_id: file-output
+    description: File is the bot responsible to send events to a file.
+    enabled: true
+    group: Output
+    groupname: outputs
+    module: intelmq.bots.outputs.file.output
+    name: File
+    parameters:
+      file: /var/lib/intelmq/bots/file-output/events.txt
+      hierarchical_output: false
+      single_key: null
+    run_mode: continuous
+  spamhaus-drop-collector:
+    bot_id: spamhaus-drop-collector
+    description: ''
+    enabled: true
+    group: Collector
+    groupname: collectors
+    module: intelmq.bots.collectors.http.collector_http
+    name: Spamhaus Drop
+    parameters:
+      destination_queues:
+        _default:
+        - spamhaus-drop-parser-queue
+      http_password: null
+      http_url: https://www.spamhaus.org/drop/drop.txt
+      http_username: null
+      name: Drop
+      provider: Spamhaus
+      rate_limit: 3600
+      ssl_client_certificate: null
+    run_mode: continuous
+  spamhaus-drop-parser:
+    bot_id: spamhaus-drop-parser
+    description: Spamhaus Drop Parser is the bot responsible to parse the DROP, EDROP,
+      DROPv6, and ASN-DROP reports and sanitize the information.
+    enabled: true
+    group: Parser
+    groupname: parsers
+    module: intelmq.bots.parsers.spamhaus.parser_drop
+    name: Spamhaus Drop
+    parameters:
+      destination_queues:
+        _default:
+        - deduplicator-expert-queue
+    run_mode: continuous
+  taxonomy-expert:
+    bot_id: taxonomy-expert
+    description: Taxonomy is the bot responsible to apply the eCSIRT Taxonomy to all
+      events.
+    enabled: true
+    group: Expert
+    groupname: experts
+    module: intelmq.bots.experts.taxonomy.expert
+    name: Taxonomy
+    parameters:
+      destination_queues:
+        _default:
+        - url-expert-queue
+    run_mode: continuous
+  url-expert:
+    bot_id: url-expert
+    description: Extract additional information for the URL
+    enabled: true
+    group: Expert
+    groupname: experts
+    module: intelmq.bots.experts.url.expert
+    name: url
+    parameters:
+      destination_queues:
+        _default:
+        - contact-expert-queue
+      load_balance: true
+      overwrite: false
+    run_mode: continuous
+  contact-expert:
+    bot_id: contact-expert
+    description: Queries contact information from ContactDB
+    enabled: true
+    group: Expert
+    module: intelmq.bots.experts.certbund_contact.expert
+    name: CERTBundKontakt
+    parameters:
+      bottype: Expert
+      database: contactdb
+      destination_queues:
+        _default: [contact-rule-expert-queue]
+      host: "{{ db_host }}"
+      password: "{{ db_password_intelmq }}"
+      port: 5432
+      sections: source
+      sslmode: allow
+      user: intelmq
+    run_mode: continuous
+  contact-rule-expert:
+    bot_id: contact-rule-expert
+    description: Applies notification rules to contacts to generate notification directives
+    enabled: true
+    group: Expert
+    module: intelmq.bots.experts.certbund_rules.expert
+    name: CERTBundRule
+    parameters:
+      bottype: Expert
+      destination_queues:
+        _default: [postgresql-output-queue]
+      remove_contact_data: true
+      script_directory: /var/lib/intelmq/bots/notification_rules
+      sections: source
+    run_mode: continuous
+  postgresql-output:
+    bot_id: postgresql-output
+    description: Writes the resulting events to the PostgreSQL database table
+    enabled: true
+    group: Output
+    module: intelmq.bots.outputs.sql.output
+    name: SQLOutput
+    parameters:
+      engine: postgresql
+      database: intelmq-events
+      host: localhost
+      jsondict_as_string: true
+      message_jsondict_as_string: true
+      port: 5432
+      user: intelmq
+      password: "{{ db_password_intelmq }}"
+      sslmode: require
+      table: events
+      fields: null
+      reconnect_delay: 0
+      fail_on_errors: false

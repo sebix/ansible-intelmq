@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Institute for Common Good Technology
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 ---
 - import_tasks: debian_pre.yml
   when: ansible_facts['os_family'] == 'Debian' and 'intelmq-api' not in ansible_facts.packages
@@ -6,25 +10,63 @@
   ansible.builtin.package:
     name: ca-certificates
     state: latest
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '20.04'
-- name: APT key
-  ansible.builtin.apt_key:
-    url: "{{ _intelmq_repository_base }}{{ _distribution_to_repository_name[ansible_distribution] }}_{{ ansible_distribution_version }}/Release.key"
-    state: present
+  when: ansible_facts["distribution"] == 'Ubuntu' and ansible_facts["distribution_version"] == '20.04'
+- name: IntelMQ APT key
+  ansible.builtin.get_url:
+    url: "{{ _intelmq_repository_base }}{{ _distribution_to_repository_name[ansible_facts['distribution']] }}_{{ ansible_facts['distribution_version'] }}/Release.key"
+    dest: /etc/apt/keyrings/intelmq.asc
+    mode: "0644"
+  notify: Update apt cache
 - name: IntelMQ repository
   ansible.builtin.apt_repository:
-    repo: "deb {{ _intelmq_repository_base }}{{ _distribution_to_repository_name[ansible_distribution] }}_{{ ansible_distribution_version }}/ /"
+    repo: "deb [signed-by=/etc/apt/keyrings/intelmq.asc] {{ _intelmq_repository_base }}{{ _distribution_to_repository_name[ansible_facts['distribution']] }}_{{ ansible_facts['distribution_version'] }}/ /"
     state: present
+    filename: intelmq
+    update_cache: false
+  notify: Update apt cache
+- name: IntelMQ unstable APT key
+  ansible.builtin.get_url:
+    url: "{{ _intelmq_repository_unstable_base }}{{ _distribution_to_repository_name[ansible_facts['distribution']] }}_{{ ansible_facts['distribution_version'] }}/Release.key"
+    dest: /etc/apt/keyrings/intelmq-unstable.asc
+    mode: "0644"
+  when: intelmq_unstable_repository
+  notify: Update apt cache
+- name: IntelMQ unstable repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/intelmq-unstable.asc] {{ _intelmq_repository_unstable_base }}{{ _distribution_to_repository_name[ansible_facts['distribution']] }}_{{ ansible_facts['distribution_version'] }}/ /"
+    filename: intelmq-unstable
+    state: present
+    update_cache: false
+  when: intelmq_unstable_repository
+  notify: Update apt cache
+
+- name: Flush handlers to update apt cache
+  ansible.builtin.meta: flush_handlers
 - name: Install IntelMQ packages
   ansible.builtin.package:
     name: "{{ item }}"
-  loop:
-    - intelmq-manager
-    - intelmq-api
-    - intelmq
+  # moreutils is for `chronic` in services&timers/cronjobs
+  loop: >-
+    {{ ['jq',
+        'moreutils',
+        'intelmq-manager',
+        'intelmq-api',
+        'intelmq',
+        'intelmq-fody',
+        'intelmq-fody-backend',
+        'intelmq-certbund-contact',
+        'intelmq-mailgen']
+       + (['dsmtpd-intelmq'] if catch_emails else [])
+       + (['intelmq-autostart'] if autostart else [])
+       + (['python3-psycopg2',
+           'python3-pyasn',
+           'python3-textx',
+           'postgresql-client-16']
+           if intelmq_optional_dependencies else [])
+       }}
 
 # services configuration
-- name: Make sure redis is running
+- name: Make sure redis/valkey is running
   ansible.builtin.service:
     state: started
     enabled: yes

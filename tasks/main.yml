@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Institute for Common Good Technology
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 ---
 - import_tasks: facts.yml
   tags:
@@ -11,13 +15,41 @@
   tags:
   - intelmq
   - mail
-  when: redirect_mail|length
+  when: redirect_mail
 
 - import_tasks: runtime.yml
   tags:
   - intelmq
   - configuration
 
+- import_tasks: certbund.yml
+  tags:
+    - intelmq
+    - certbund
+
 - import_tasks: check.yml
   tags:
   - intelmq
+
+- import_tasks: database.yml
+  tags:
+  - intelmq
+  - database
+
+- import_tasks: mailgen.yml
+  tags:
+    - intelmq
+    - mailgen
+
+- import_tasks: fody.yml
+  tags:
+  - intelmq
+  - fody
+
+
+- ansible.builtin.import_tasks: 05-intelmq-monitoring.yaml # noqa: name
+  environment: "{{ proxy_env }}"
+  when: checkmk
+  tags:
+    - intelmq
+    - checkmk

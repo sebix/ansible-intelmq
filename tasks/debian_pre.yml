@@ -1,4 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Institute for Common Good Technology
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 ---
+- name: Install debconf-utils
+  # required by ansible.builtin.debconf
+  ansible.builtin.package:
+    name: debconf-utils
+    state: present
+
 - name: Set user for IntelMQ API
   ansible.builtin.debconf:
     name: intelmq-api

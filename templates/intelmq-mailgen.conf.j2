@@ -1,0 +1,24 @@
+{
+    "openpgp": {
+        "always_sign" : false,
+         "gnupg_home": null,
+         "signing_key": null
+    },
+    "database": {
+        "event": {
+            "name": "intelmq-events",
+            "username": "mailgen",
+            "password": "{{ db_password_mailgen }}",
+            "host": "{{ db_host }}",
+            "port": 5432
+        }
+    },
+    "template_dir": "/etc/intelmq/mailgen/templates",
+    "script_directory": "/etc/intelmq/mailgen/formats",
+    "sender": "noreply@example.com",
+    "smtp": {
+        "host": "localhost",
+        "port": {{ 1025 if catch_emails else 25 }}
+    },
+    "logging_level": "INFO"
+}
