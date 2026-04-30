@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: CERT.at GmbH
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
+---
+- name: Installing IntelMQ Monitoring package
+  become: true
+  tags: ["monitoring"]
+
+  block:
+    - name: Install montoring package
+      ansible.builtin.pip:
+        name: intelmq-monitoring-checkmk
+        version: "{{ intelmq_checkmk_monitoring_version }}"
+        state: present
+
+    - name: Get intelmq-monitor path
+      ansible.builtin.command:
+        cmd: which intelmq-monitor
+      register: output
+      changed_when: output.rc != 0
+
+    - name: Save intelmq-monitor path
+      ansible.builtin.set_fact:
+        monitor_bin: "{{ output.stdout }}"
+
+    - name: Monitoring cache directory
+      ansible.builtin.file:
+        name: /etc/intelmq/monitoring-cache
+        state: directory
+        owner: intelmq
+        mode: "755"
+
+    - name: Register cronjob for monitoring
+      ansible.builtin.cron:
+        name: intelmq-monitor
+        job: "{{ monitor_bin }} --log-file=/var/log/intelmq/intelmq-monitor.log"
+        minute: "*/5"
+        user: intelmq
+        state: present
