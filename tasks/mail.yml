@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 ---
-- name: check if /etc/aliases exists
+- name: Check if /etc/aliases exists
   ansible.builtin.stat:
     path: /etc/aliases
   register: etc_aliases

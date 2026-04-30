@@ -5,12 +5,12 @@
 ---
 - name: Run all
   hosts: all
-  vars:
-#    ansible_python_interpreter: /usr/bin/python3
+  # vars:
+  #   ansible_python_interpreter: /usr/bin/python3
   roles:
-    - role: ansible-intelmq
+    - role: intelmq
       vars:
         intelmq_api_username: intelmqadmin
         intelmq_api_password: intelmqadmin
-        intelmq_runtime_clean: yes
-      diff: yes
+        intelmq_runtime_clean: true
+      diff: true

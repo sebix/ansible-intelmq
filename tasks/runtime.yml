@@ -7,15 +7,15 @@
   ansible.builtin.slurp:
     path: /etc/intelmq/runtime.yaml
   register: intelmq_runtime_raw
-- name: parse runtime.yaml
+- name: Parse runtime.yaml
   ansible.builtin.set_fact:
     original_intelmq_runtime: "{{ intelmq_runtime_raw['content'] | b64decode | from_yaml }}"
 
-- name: merge runtime
+- name: Merge runtime
   ansible.builtin.set_fact:
     new_intelmq_runtime: "{{ original_intelmq_runtime | combine(intelmq_runtime, recursive=True) }}"
   when: not intelmq_runtime_clean
-- name: create new runtime
+- name: Create new runtime
   ansible.builtin.set_fact:
     new_intelmq_runtime: "{{ intelmq_runtime }}"
   when: intelmq_runtime_clean
@@ -24,7 +24,7 @@
   ansible.builtin.copy:
     src: /etc/intelmq/runtime.yaml
     dest: /etc/intelmq/runtime.yaml.bak
-    remote_src: yes
+    remote_src: true
     mode: '0640'
   when: "original_intelmq_runtime != new_intelmq_runtime"
 

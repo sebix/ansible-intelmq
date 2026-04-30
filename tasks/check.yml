@@ -9,9 +9,9 @@
       - intelmqctl
       - check
   become_user: intelmq
-  become: yes
+  become: true
   vars:
-    ansible_ssh_pipelining: yes
+    ansible_ssh_pipelining: true
   when: not skip_intelmqctl_check
   changed_when: false
 - name: Run intelmqctl upgrade-config
@@ -19,6 +19,7 @@
     argv:
       - intelmqctl
       - upgrade-config
+  become: true
   become_user: intelmq
   vars:
     ansible_ssh_pipelining: true

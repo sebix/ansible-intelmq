@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 ---
-- name: install script contactdb networks to fake expert
-  copy:
+- name: Install script contactdb networks to fake expert
+  ansible.builtin.copy:
     src: files/contactdb_networks_to_fake_expert.py
     dest: /usr/local/sbin/
     mode: '0755'

@@ -32,8 +32,8 @@
       loop:
         - {db: intelmq-events, user: intelmq}
         - {db: intelmq-events, user: mailgen}
-        - {db: contactdb,      user: intelmq}
-        - {db: contactdb,      user: fody}
+        - {db: contactdb, user: intelmq}
+        - {db: contactdb, user: fody}
       when: intelmq_server_ip is defined and intelmq_server_ip | length > 0
       notify: Restart postgresql
 
@@ -129,6 +129,7 @@
     - name: Create events table and clean up
       block:
         - name: Create events table
+          become: true
           become_user: postgres
           community.postgresql.postgresql_script:
             db: intelmq-events
@@ -169,6 +170,7 @@
     #     mode: "0644"
 
     - name: Create contactdb tables
+      become: true
       become_user: postgres
       community.postgresql.postgresql_script:
         db: contactdb
@@ -181,6 +183,7 @@
     #     state: absent
 
     - name: Create contactdb group roles
+      become: true
       become_user: postgres
       community.postgresql.postgresql_user:
         name: "{{ item }}"
@@ -190,6 +193,7 @@
         - contactdb_rw
 
     - name: Grant table privileges to contactdb_rw
+      become: true
       become_user: postgres
       community.postgresql.postgresql_privs:
         database: contactdb
@@ -198,6 +202,7 @@
         privs: SELECT,INSERT,UPDATE,DELETE
 
     - name: Grant sequence privileges to contactdb_rw
+      become: true
       become_user: postgres
       community.postgresql.postgresql_privs:
         database: contactdb
@@ -207,6 +212,7 @@
         privs: USAGE
 
     - name: Grant table privileges to contactdb_ro
+      become: true
       become_user: postgres
       community.postgresql.postgresql_privs:
         database: contactdb
@@ -215,12 +221,14 @@
         privs: SELECT
 
     - name: Grant contactdb_ro to intelmq
+      become: true
       become_user: postgres
       community.postgresql.postgresql_membership:
         group: contactdb_ro
         target_roles: intelmq
 
     - name: Grant contactdb_rw to fody
+      become: true
       become_user: postgres
       community.postgresql.postgresql_membership:
         group: contactdb_rw
@@ -270,6 +278,7 @@
     - name: Create notifications tables and clean up
       block:
         - name: Create notifications tables
+          become: true
           become_user: postgres
           community.postgresql.postgresql_script:
             db: intelmq-events
@@ -281,12 +290,14 @@
             state: absent
 
     - name: Grant eventdb_insert to intelmq
+      become: true
       become_user: postgres
       community.postgresql.postgresql_membership:
         group: eventdb_insert
         target_roles: intelmq
 
     - name: Grant eventdb_send_notifications to mailgen
+      become: true
       become_user: postgres
       community.postgresql.postgresql_membership:
         group: eventdb_send_notifications
@@ -322,6 +333,7 @@
       changed_when: false
 
     - name: Check if contact_automatic table is empty
+      become: true
       become_user: postgres
       community.postgresql.postgresql_query:
         db: contactdb

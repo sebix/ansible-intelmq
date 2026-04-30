@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2022, 2026 Institute for Common Good Technology
+#
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
 ---
 # https://yamllint.readthedocs.io/en/stable/configuration.html#extending-the-default-configuration
 extends: default
@@ -5,5 +8,10 @@ extends: default
 rules:
   comments-indentation: disable
   line-length: disable
-# yes/no are very common in ansible. Also triggers a false-positive for github workflows ("on")
-  truthy: disable
+  comments:
+    min-spaces-from-content: 1
+  braces:
+    max-spaces-inside: 1
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
