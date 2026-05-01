@@ -11,8 +11,8 @@ dependency:
 driver:
   name: docker
 platforms:
-  - name: "ansible-intelmq-${image:-fedora}-${tag:-latest}${TOX_ENVNAME}"
-    image: fedora:latest
+  - name: "ansible-intelmq-${image:-ubuntu}-${tag:-latest}${TOX_ENVNAME}"
+    image: "robertdebock/${image:-ubuntu}:${tag:-latest}"
     command: /sbin/init
     tmpfs:
       - /run
