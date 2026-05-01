@@ -10,3 +10,20 @@
 
   roles:
     - role: robertdebock.bootstrap
+
+- name: Start PostgreSQL for molecule tests
+  hosts: all
+  gather_facts: false
+  become: true
+
+  tasks:
+    - name: Install PostgreSQL
+      ansible.builtin.package:
+        name: postgresql
+        state: present
+
+    - name: Start PostgreSQL
+      ansible.builtin.service:
+        name: postgresql
+        state: started
+        enabled: true
