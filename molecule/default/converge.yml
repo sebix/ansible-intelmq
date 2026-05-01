@@ -8,7 +8,7 @@
   # vars:
   #   ansible_python_interpreter: /usr/bin/python3
   roles:
-    - role: intelmq
+    - role: sebix.intelmq
       vars:
         intelmq_api_username: intelmqadmin
         intelmq_api_password: intelmqadmin
