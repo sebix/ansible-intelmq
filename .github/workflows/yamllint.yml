@@ -1,16 +1,17 @@
-# SPDX-FileCopyrightText: 2022 Institute for Common Good Technology
+# SPDX-FileCopyrightText: 2022-2026 Institute for Common Good Technology
 #
 # SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 ---
 name: Yaml Lint
-on:
-  push:
+
+on: [push, pull_request]
 
 jobs:
   yamllint:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - name: yamllint
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: YAML lint
         uses: ibiqlik/action-yamllint@v3

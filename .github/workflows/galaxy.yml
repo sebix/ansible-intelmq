@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 Institute for Common Good Technology
+# SPDX-FileCopyrightText: 2022-2026 Institute for Common Good Technology
 #
 # SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
@@ -17,9 +17,9 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v6
-      - name: to Ansible Galaxy
-        uses: robertdebock/galaxy-action@1.1.1
+      - name: Push to Ansible Galaxy
+        uses: robertdebock/galaxy-action@main
         with:
           galaxy_api_key: ${{ secrets.GALAXY_API_KEY }}

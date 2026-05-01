@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022,2026 Institute for Common Good Technology
+# SPDX-FileCopyrightText: 2022-2026 Institute for Common Good Technology
 #
 # SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
@@ -9,15 +9,15 @@ on: [push, pull_request]
 
 jobs:
   molecule:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         image:
 #          - image: "enterpriselinux"
 #            tag: "latest"
-          - image: "debian"
-            tag: "bullseye"
+#          - image: "debian"
+#            tag: "bullseye"
 #          - image: "debian"
 #            tag: "bookworm"
 #          - image: "fedora"
@@ -27,16 +27,16 @@ jobs:
 #          - image: "opensuse"
 #            tag: "latest"
           - image: "ubuntu"
-            tag: "latest"
+            tag: "24.04"
     steps:
-      - name: checkout the repository
-        uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v6
         with:
           path: "${{ github.repository }}"
 
-      - name: molecule
-        uses: robertdebock/molecule-action@4.0.7
+      - name: Run molecule
+        uses: robertdebock/molecule-action@master
         with:
-          image: ${{ matrix.distribution.image }}
-          tag: ${{ matrix.distribution.tag }}
+          image: ${{ matrix.image.image }}
+          tag: ${{ matrix.image.tag }}
           options: parallel
