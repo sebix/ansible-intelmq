@@ -10,24 +10,6 @@ on: [push, pull_request]
 jobs:
   molecule:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        image:
-#          - image: "enterpriselinux"
-#            tag: "latest"
-#          - image: "debian"
-#            tag: "bullseye"
-#          - image: "debian"
-#            tag: "bookworm"
-#          - image: "fedora"
-#            tag: "34"
-#          - image: "fedora"
-#            tag: "latest"
-#          - image: "opensuse"
-#            tag: "latest"
-          - image: "ubuntu"
-            tag: "24.04"
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -35,8 +17,8 @@ jobs:
           path: "${{ github.repository }}"
 
       - name: Run molecule
-        uses: robertdebock/molecule-action@master
+        uses: gofrolist/molecule-action@v2
         with:
-          image: ${{ matrix.image.image }}
-          tag: ${{ matrix.image.tag }}
-          options: parallel
+          molecule_options: --base-config molecule/default/molecule.yml
+          molecule_command: test
+          molecule_working_dir: "${{ github.repository }}"
