@@ -30,10 +30,10 @@
         address: "{{ intelmq_server_ip }}/32"
         method: scram-sha-256
       loop:
-        - {db: intelmq-events, user: intelmq}
-        - {db: intelmq-events, user: mailgen}
-        - {db: contactdb, user: intelmq}
-        - {db: contactdb, user: fody}
+        - {login_db: intelmq-events, user: intelmq}
+        - {login_db: intelmq-events, user: mailgen}
+        - {login_db: contactdb, user: intelmq}
+        - {login_db: contactdb, user: fody}
       when: intelmq_server_ip is defined and intelmq_server_ip | length > 0
       notify: Restart postgresql
 
@@ -132,7 +132,7 @@
           become: true
           become_user: postgres
           community.postgresql.postgresql_script:
-            db: intelmq-events
+            login_db: intelmq-events
             path: "{{ _initdb_events_sql.path }}"
       always:
         - name: Remove intelmq-events initdb.sql
@@ -173,7 +173,7 @@
       become: true
       become_user: postgres
       community.postgresql.postgresql_script:
-        db: contactdb
+        login_db: contactdb
         # path: /usr/share/intelmq-certbund-contact/sql/initdb.sql
         path: /tmp/initdb-contactdb.sql
 
@@ -281,7 +281,7 @@
           become: true
           become_user: postgres
           community.postgresql.postgresql_script:
-            db: intelmq-events
+            login_db: intelmq-events
             path: "{{ _notifications_sql.path }}"
       always:
         - name: Remove notifications.sql copy
@@ -336,7 +336,7 @@
       become: true
       become_user: postgres
       community.postgresql.postgresql_query:
-        db: contactdb
+        login_db: contactdb
         query: "SELECT COUNT(*) FROM contact_automatic"
       register: _contact_automatic_count
       changed_when: false
